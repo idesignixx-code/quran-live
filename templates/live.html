@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌙 Quran Live Translation</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@700&family=Scheherazade+New:wght@700&family=Noto+Sans:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Noto Sans', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: white;
+            overflow: hidden;
+        }
+        
+        .font-arabic { font-family: 'Amiri', serif; }
+        .font-quran { font-family: 'Scheherazade New', serif; }
+        
+        .verse-arabic {
+            font-size: clamp(3rem, 8vw, 8rem);
+            line-height: 1.6;
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
+            animation: fadeInScale 0.6s ease-out;
+        }
+        
+        .verse-translation {
+            font-size: clamp(1.5rem, 4vw, 4rem);
+            line-height: 1.5;
+            animation: fadeInUp 0.6s ease-out 0.1s both;
+        }
+        
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.9) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .info-bar {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid rgba(59, 130, 246, 0.3);
+        }
+        
+        .next-verse {
+            background: rgba(15, 23, 42, 0.6);
+            border-left: 3px solid #3b82f6;
+            transition: all 0.3s;
+        }
+        
+        .next-verse:hover {
+            background: rgba(15, 23, 42, 0.9);
+        }
+        
+        .sajdah-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            padding: 3rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: popIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 1000;
+        }
+        
+        @keyframes popIn {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+            100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+        
+        .confidence-bar {
+            height: 6px;
+            background: linear-gradient(90deg, #10b981 0%, #3b82f6 100%);
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col">
+    
+    <div class="info-bar px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-4">
+            <span class="text-3xl">🌙</span>
+            <div>
+                <h1 class="text-xl font-bold" id="surah-info">Waiting...</h1>
+                <p class="text-sm text-blue-300" id="language-label">Live Translation</p>
+            </div>
+        </div>
+        
+        <div class="flex items-center space-x-6">
+            <div class="text-right">
+                <div class="text-xs text-gray-400">Confidence</div>
+                <div class="text-lg font-bold text-green-400" id="confidence-text">--</div>
+            </div>
+            <div class="flex items-center space-x-2">
+                <div class="w-3 h-3 rounded-full bg-gray-500" id="status-dot"></div>
+                <span class="text-sm font-semibold text-gray-400" id="status-text">Connecting...</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="w-full bg-gray-800 h-1.5">
+        <div class="confidence-bar" style="width: 0%" id="confidence-bar"></div>
+    </div>
+    
+    <div class="flex-1 flex flex-col justify-center px-8 md:px-16 lg:px-24 overflow-auto">
+        
+        <div class="text-center mb-8 md:mb-12">
+            <p class="verse-arabic font-quran text-white" id="arabic-text">
+                بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
+            </p>
+        </div>
+        
+        <div class="text-center mb-8">
+            <p class="verse-translation font-arabic text-blue-100" id="translation-text">
+                In the name of Allah, the Most Gracious, the Most Merciful
+            </p>
+        </div>
+        
+        <div class="mt-auto pb-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="next-verses-container">
+            </div>
+        </div>
+    </div>
+    
+    <div class="info-bar px-6 py-3 text-center">
+        <p class="text-xs text-gray-400">
+            Response: <span id="response-time" class="font-mono text-blue-300">--</span>
+        </p>
+    </div>
+    
+    <div id="sajdah-alert" style="display: none;">
+        <div class="sajdah-popup text-center text-white">
+            <div class="text-6xl mb-4">🤲</div>
+            <h2 class="text-4xl font-bold mb-2">Prostration Verse</h2>
+            <p class="text-2xl opacity-90 mb-4" id="sajdah-details">--</p>
+        </div>
+    </div>
+    
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const language = urlParams.get('lang') || 'en';
+        
+        const langConfig = {
+            'ar': { name: 'العربية', dir: 'rtl' },
+            'en': { name: 'English', dir: 'ltr' },
+            'fr': { name: 'Français', dir: 'ltr' },
+            'nl': { name: 'Nederlands', dir: 'ltr' }
+        };
+        
+        const config = langConfig[language] || langConfig['en'];
+        document.documentElement.dir = config.dir;
+        document.getElementById('language-label').textContent = `Live Translation - ${config.name}`;
+        
+        const socket = io();
+        
+        socket.on('connect', () => {
+            console.log('✅ Connected');
+            document.getElementById('status-dot').className = 'w-3 h-3 rounded-full bg-green-500 animate-pulse';
+            document.getElementById('status-text').textContent = 'Connected';
+            document.getElementById('status-text').className = 'text-sm font-semibold text-green-400';
+        });
+        
+        socket.on('disconnect', () => {
+            console.log('❌ Disconnected');
+            document.getElementById('status-dot').className = 'w-3 h-3 rounded-full bg-red-500';
+            document.getElementById('status-text').textContent = 'Disconnected';
+            document.getElementById('status-text').className = 'text-sm font-semibold text-red-400';
+        });
+        
+        socket.on('verse_matched', (data) => {
+            const verse = data.verse;
+            
+            console.log('📖 Verse:', verse);
+            console.log('🌍 Lang:', language);
+            
+            document.getElementById('surah-info').textContent = `Surah ${verse.surah} - Verse ${verse.ayah}`;
+            
+            const arabicEl = document.getElementById('arabic-text');
+            arabicEl.style.animation = 'none';
+            setTimeout(() => {
+                arabicEl.style.animation = '';
+                arabicEl.textContent = verse.ar;
+            }, 10);
+            
+            let translation = verse[language] || verse.en || 'Translation not available';
+            console.log('💬 Translation:', translation);
+            
+            const translationEl = document.getElementById('translation-text');
+            translationEl.style.animation = 'none';
+            setTimeout(() => {
+                translationEl.style.animation = '';
+                translationEl.textContent = translation;
+            }, 10);
+            
+            const confidence = Math.round((data.confidence || 0) * 100);
+            document.getElementById('confidence-text').textContent = `${confidence}%`;
+            document.getElementById('confidence-bar').style.width = `${confidence}%`;
+            
+            if (data.response_time_ms) {
+                document.getElementById('response-time').textContent = `${data.response_time_ms.toFixed(1)}ms`;
+            }
+        });
+        
+        socket.on('next_verses', (data) => {
+            const container = document.getElementById('next-verses-container');
+            container.innerHTML = '';
+            
+            if (data.verses && data.verses.length > 0) {
+                data.verses.forEach((verse) => {
+                    const translation = verse[language] || verse.en || '';
+                    const div = document.createElement('div');
+                    div.className = 'next-verse p-4 rounded-lg';
+                    div.innerHTML = `
+                        <div class="flex items-start space-x-3">
+                            <span class="text-blue-400 font-bold text-lg">${verse.ayah}</span>
+                            <div class="flex-1">
+                                <p class="text-white text-sm font-quran mb-1">${verse.ar.substring(0, 60)}...</p>
+                                <p class="text-blue-200 text-xs">${translation.substring(0, 80)}...</p>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+            }
+        });
+        
+        socket.on('sajdah_alert', (data) => {
+            const alert = document.getElementById('sajdah-alert');
+            document.getElementById('sajdah-details').textContent = `Surah ${data.verse.surah} - Verse ${data.verse.ayah}`;
+            alert.style.display = 'block';
+            setTimeout(() => { alert.style.display = 'none'; }, 5000);
+        });
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 't' || e.key === 'T') {
+                const tests = ['بسم الله الرحمن الرحيم', 'الحمد لله رب العالمين', 'قل هو الله احد'];
+                socket.emit('recognize_verse', { text: tests[Math.floor(Math.random() * 3)], lang: language });
+            }
+        });
+    </script>
+</body>
+</html>

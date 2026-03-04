@@ -1,0 +1,257 @@
+{
+  "1": {
+    "name": "Al-Fatihah",
+    "name_ar": "الفاتحة",
+    "ayahs": [
+      {
+        "number": 1,
+        "ar": "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
+        "en": "In the name of Allah, the Most Gracious, the Most Merciful",
+        "fr": "Au nom d'Allah, le Tout Miséricordieux, le Très Miséricordieux",
+        "nl": "In de naam van Allah, de Meest Barmhartige, de Meest Genadevolle"
+      },
+      {
+        "number": 2,
+        "ar": "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ",
+        "en": "All praise is due to Allah, Lord of the worlds",
+        "fr": "Louange à Allah, Seigneur de l'univers",
+        "nl": "Alle lof behoort toe aan Allah, Heer der werelden"
+      },
+      {
+        "number": 3,
+        "ar": "الرَّحْمَٰنِ الرَّحِيمِ",
+        "en": "The Most Gracious, the Most Merciful",
+        "fr": "Le Tout Miséricordieux, le Très Miséricordieux",
+        "nl": "De Meest Barmhartige, de Meest Genadevolle"
+      },
+      {
+        "number": 4,
+        "ar": "مَٰلِكِ يَوْمِ الدِّينِ",
+        "en": "Master of the Day of Judgment",
+        "fr": "Maître du Jour de la Rétribution",
+        "nl": "Meester van de Dag des Oordeels"
+      },
+      {
+        "number": 5,
+        "ar": "إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ",
+        "en": "You alone we worship, and You alone we ask for help",
+        "fr": "C'est Toi [Seul] que nous adorons, et c'est Toi [Seul] dont nous implorons secours",
+        "nl": "U alleen aanbidden wij, en U alleen vragen wij om hulp"
+      },
+      {
+        "number": 6,
+        "ar": "اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ",
+        "en": "Guide us to the straight path",
+        "fr": "Guide-nous dans le droit chemin",
+        "nl": "Leid ons op het rechte pad"
+      },
+      {
+        "number": 7,
+        "ar": "صِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ الْمَغْضُوبِ عَلَيْهِمْ وَلَا الضَّالِّينَ",
+        "en": "The path of those upon whom You have bestowed favor, not of those who have earned [Your] anger or of those who are astray",
+        "fr": "Le chemin de ceux que Tu as comblés de faveurs, non pas de ceux qui ont encouru Ta colère, ni des égarés",
+        "nl": "Het pad van degenen aan wie U gunsten hebt geschonken, niet van degenen op wie Uw toorn rust en niet van degenen die dwalen"
+      }
+    ]
+  },
+  "2": {
+    "name": "Al-Baqarah",
+    "name_ar": "البقرة",
+    "ayahs": [
+      {
+        "number": 1,
+        "ar": "الم",
+        "en": "Alif, Lam, Meem",
+        "fr": "Alif, Lam, Meem",
+        "nl": "Alif, Lam, Meem"
+      },
+      {
+        "number": 2,
+        "ar": "ذَٰلِكَ الْكِتَابُ لَا رَيْبَ ۛ فِيهِ ۛ هُدًى لِّلْمُتَّقِينَ",
+        "en": "This is the Book about which there is no doubt, a guidance for those conscious of Allah",
+        "fr": "C'est le Livre au sujet duquel il n'y a aucun doute, c'est un guide pour les pieux",
+        "nl": "Dit is het Boek waarover geen twijfel bestaat, het is een leiding voor de godvruchtigen"
+      },
+      {
+        "number": 3,
+        "ar": "الَّذِينَ يُؤْمِنُونَ بِالْغَيْبِ وَيُقِيمُونَ الصَّلَاةَ وَمِمَّا رَزَقْنَاهُمْ يُنفِقُونَ",
+        "en": "Who believe in the unseen, establish prayer, and spend out of what We have provided for them",
+        "fr": "Ceux qui croient à l'invisible, accomplissent la Salat et font des dépenses de ce que Nous leur avons attribué",
+        "nl": "Zij die in het onzichtbare geloven, het gebed verrichten en geven van wat Wij hun gegeven hebben"
+      },
+      {
+        "number": 4,
+        "ar": "وَالَّذِينَ يُؤْمِنُونَ بِمَا أُنزِلَ إِلَيْكَ وَمَا أُنزِلَ مِن قَبْلِكَ وَبِالْآخِرَةِ هُمْ يُوقِنُونَ",
+        "en": "And who believe in what has been revealed to you, [O Muhammad], and what was revealed before you, and of the Hereafter they are certain",
+        "fr": "Et ceux qui croient à ce qui t'a été révélé et à ce qui a été révélé avant toi, et du monde futur ils sont certains",
+        "nl": "En zij die geloven in wat tot u is geopenbaard en wat vóór u is geopenbaard, en van het hiernamaals zijn zij zeker"
+      },
+      {
+        "number": 5,
+        "ar": "أُولَٰئِكَ عَلَىٰ هُدًى مِّن رَّبِّهِمْ ۖ وَأُولَٰئِكَ هُمُ الْمُفْلِحُونَ",
+        "en": "Those are upon guidance from their Lord, and it is those who are the successful",
+        "fr": "Ceux-là sont sur le bon chemin de la part de leur Seigneur, et ce sont eux qui réussissent",
+        "nl": "Zij zijn op leiding van hun Heer, en zij zullen succesvol zijn"
+      },
+      {
+        "number": 6,
+        "ar": "إِنَّ الَّذِينَ كَفَرُوا سَوَاءٌ عَلَيْهِمْ أَأَنذَرْتَهُمْ أَمْ لَمْ تُنذِرْهُمْ لَا يُؤْمِنُونَ",
+        "en": "Indeed, those who have disbelieved - it is all the same for them whether you warn them or do not warn them - they will not believe",
+        "fr": "Ceux qui ont mécru, que tu les avertisses ou que tu ne les avertisses pas, c'est égal pour eux: ils ne croient pas",
+        "nl": "Degenen die ongelovig zijn, het is voor hen gelijk of gij hen waarschuwt of niet - zij zullen niet geloven"
+      },
+      {
+        "number": 7,
+        "ar": "خَتَمَ اللَّهُ عَلَىٰ قُلُوبِهِمْ وَعَلَىٰ سَمْعِهِمْ ۖ وَعَلَىٰ أَبْصَارِهِمْ غِشَاوَةٌ ۖ وَلَهُمْ عَذَابٌ عَظِيمٌ",
+        "en": "Allah has set a seal upon their hearts and upon their hearing, and over their vision is a veil. And for them is a great punishment",
+        "fr": "Allah a scellé leurs cœurs et leurs oreilles; et leurs yeux sont couverts d'un voile; et pour eux il y a un châtiment terrible",
+        "nl": "Allah heeft hun harten en hun gehoor verzegeld, en er is een sluier over hun ogen. En voor hen is er een groot straf"
+      },
+      {
+        "number": 8,
+        "ar": "وَمِنَ النَّاسِ مَن يَقُولُ آمَنَّا بِاللَّهِ وَبِالْيَوْمِ الْآخِرِ وَمَا هُم بِمُؤْمِنِينَ",
+        "en": "And of the people are some who say, 'We believe in Allah and the Last Day,' but they are not believers",
+        "fr": "Et parmi les gens, il y en a qui disent: «Nous croyons en Allah et au Jour dernier», alors qu'ils ne sont pas croyants",
+        "nl": "En onder de mensen zijn er die zeggen: 'Wij geloven in Allah en de Laatste Dag', terwijl zij niet geloven"
+      },
+      {
+        "number": 9,
+        "ar": "يُخَادِعُونَ اللَّهَ وَالَّذِينَ آمَنُوا وَمَا يَخْدَعُونَ إِلَّا أَنفُسَهُمْ وَمَا يَشْعُرُونَ",
+        "en": "They deceive Allah and those who have believed, but they deceive not except themselves and perceive it not",
+        "fr": "Ils trompent Allah et les croyants, alors qu'ils ne se trompent que eux-mêmes, sans s'en apercevoir",
+        "nl": "Zij bedriegen Allah en degenen die geloven, maar zij bedriegen slechts zichzelf en weten het niet"
+      },
+      {
+        "number": 10,
+        "ar": "فِي قُلُوبِهِم مَّرَضٌ فَزَادَهُمُ اللَّهُ مَرَضًا ۖ وَلَهُمْ عَذَابٌ أَلِيمٌ بِمَا كَانُوا يَكْذِبُونَ",
+        "en": "In their hearts is disease, so Allah has increased their disease; and for them is a painful punishment because they used to lie",
+        "fr": "Il y a une maladie dans leurs cœurs. Allah aggrave donc leur maladie; et pour eux il y aura un châtiment douloureux, pour avoir menti",
+        "nl": "In hun harten is ziekte, dus Allah heeft hun ziekte verergerd; en voor hen is er een pijnlijke straf omdat zij logen"
+      }
+    ]
+  },
+  "3": {
+    "name": "Al-Imran",
+    "name_ar": "آل عمران",
+    "ayahs": [
+      {
+        "number": 1,
+        "ar": "الم",
+        "en": "Alif, Lam, Meem",
+        "fr": "Alif, Lam, Meem",
+        "nl": "Alif, Lam, Meem"
+      },
+      {
+        "number": 2,
+        "ar": "اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ",
+        "en": "Allah - there is no deity except Him, the Ever-Living, the Sustainer of existence",
+        "fr": "Allah, il n'y a de divinité que Lui, le Vivant, Celui qui entretient et fait subsister toute chose",
+        "nl": "Allah, er is geen godheid behalve Hem, de Eeuwige, de Zelfstandige"
+      },
+      {
+        "number": 3,
+        "ar": "نَزَّلَ عَلَيْكَ الْكِتَابَ بِالْحَقِّ مُصَدِّقًا لِّمَا بَيْنَ يَدَيْهِ وَأَنزَلَ التَّوْرَاةَ وَالْإِنجِيلَ",
+        "en": "He has sent down upon you, [O Muhammad], the Book in truth, confirming what was before it. And He revealed the Torah and the Gospel",
+        "fr": "Il a fait descendre sur toi le Livre avec la vérité, confirmant ce qu'il y avait avant lui. Et Il a fait descendre le Thora et l'Évangile",
+        "nl": "Hij heeft op u het Boek neergebracht in waarheid, bevestigend wat eraan voorafging. En Hij heeft de Thora en het Evangelie neergebracht"
+      },
+      {
+        "number": 4,
+        "ar": "مِن قَبْلُ هُدًى لِّلنَّاسِ وَأَنزَلَ الْفُرْقَانَ ۗ إِنَّ الَّذِينَ كَفَرُوا بِآيَاتِ اللَّهِ لَهُمْ عَذَابٌ شَدِيدٌ ۗ وَاللَّهُ عَزِيزٌ ذُو انتِقَامٍ",
+        "en": "Previously, as guidance for the people. And He revealed the Criterion. Indeed, those who have disbelieved in the signs of Allah will have a severe punishment, and Allah is Exalted in Might, the Owner of Retribution",
+        "fr": "avant cela, c'est un guide pour les gens. Et Il a fait descendre le Critère (le Furqan). Ceux qui ont mécru aux signes d'Allah auront, certes, un châtiment terrible. Allah est Puissant et Détenteur de la vengeance",
+        "nl": "tevoren, als leiding voor de mensen. En Hij heeft het Onderscheid neergebracht. Degenen die de tekenen van Allah verloochend hebben, zullen inderdaad een zware straf hebben. En Allah is Machtig, de Eigenaar van Wraak"
+      },
+      {
+        "number": 5,
+        "ar": "إِنَّ اللَّهَ لَا يَخْفَىٰ عَلَيْهِ شَيْءٌ فِي الْأَرْضِ وَلَا فِي السَّمَاءِ",
+        "en": "Indeed, not hidden from Allah is anything on the earth or in the heaven",
+        "fr": "Rien sur terre ni au ciel n'est caché à Allah",
+        "nl": "Inderdaad, niets is verborgen voor Allah, noch op aarde noch in de hemel"
+      },
+      {
+        "number": 6,
+        "ar": "هُوَ الَّذِي يُصَوِّرُكُمْ فِي الْأَرْحَامِ كَيْفَ يَشَاءُ ۚ لَا إِلَٰهَ إِلَّا هُوَ الْعَزِيزُ الْحَكِيمُ",
+        "en": "It is He who forms you in the wombs however He wills. There is no deity except Him, the Exalted in Might, the Wise",
+        "fr": "C'est Lui qui vous forme dans les matrices comme Il veut. Il n'y a de divinité que Lui, le Puissant, le Sage",
+        "nl": "Hij is het Die u vormt in de baarmoeder zoals Hij wil. Er is geen godheid behalve Hem, de Machtige, de Wijze"
+      },
+      {
+        "number": 7,
+        "ar": "هُوَ الَّذِي أَنزَلَ عَلَيْكَ الْكِتَابَ مِنْهُ آيَاتٌ مُّحْكَمَاتٌ هُنَّ أُمُّ الْكِتَابِ وَأُخَرُ مُتَشَابِهَاتٌ ۖ فَأَمَّا الَّذِينَ فِي قُلُوبِهِمْ زَيْغٌ فَيَتَّبِعُونَ مَا تَشَابَهَ مِنْهُ ابْتِغَاءَ الْفِتْنَةِ وَابْتِغَاءَ تَأْوِيلِهِ ۗ وَمَا يَعْلَمُ تَأْوِيلَهُ إِلَّا اللَّهُ ۗ وَالرَّاسِخُونَ فِي الْعِلْمِ يَقُولُونَ آمَنَّا بِهِ كُلٌّ مِّنْ عِندِ رَبِّنَا ۗ وَمَا يَذَّكَّرُ إِلَّا أُولُو الْأَلْبَابِ",
+        "en": "It is He who has sent down to you, the Book; in it are verses that are decisive, they are the foundation of the Book; and others that are allegorical. But those in whose hearts is perversity follow the part thereof that is allegorical, seeking discord and searching for its hidden meanings; but no one knows its hidden meanings except Allah. And those who are firmly grounded in knowledge say: We believe in the Book; the whole of it is from our Lord. And none will grasp the Message except men of understanding",
+        "fr": "C'est Lui qui a fait descendre sur toi le Livre : il s'y trouve des versets sans équivoque, ce sont le fondement du Livre, et d'autres versets dont le sens est équivoque. Les gens, donc, qui ont au cœur une inclinaison vers l'égarement, mettent l'accent sur les versets équivoques cherchant la dissension et cherchant une interprétation [personnelle]; alors que nul n'en connaît l'interprétation, à part Allah. Mais ceux qui sont bien enracinés dans la science disent: Nous y croyons, tout est de la part de notre Seigneur. Seuls, les doués d'intelligence s'en rappellent",
+        "nl": "Het is Hij Die op u het Boek heeft neergebracht: daarin bevinden zich verstekeningen - zij vormen de grondslag van het Boek - en anderen die dubbelzinnig zijn. Maar degenen in wier harten verkwarting is, volgen het dubbelzinnige gedeelte daarvan, stellende zich voor op verdeeldheid en stellende zich voor op verdraaiing ervan; maar niemand kent de verdraaiing ervan behalve Allah. En degenen die gegrondvest zijn in kennis zeggen: Wij geloven er in; het is alles van onze Heer. En slechts degenen met verstand herinneren zich"
+      },
+      {
+        "number": 8,
+        "ar": "رَبَّنَا لَا تُزِغْ قُلُوبَنَا بَعْدَ إِذْ هَدَيْتَنَا وَهَبْ لَنَا مِن لَّدُنكَ رَحْمَةً ۚ إِنَّكَ أَنتَ الْوَهَّابُ",
+        "en": "Our Lord, let not our hearts deviate after You have guided us. Grant us mercy from Yourself; indeed, You are the Bestower",
+        "fr": "Seigneur ! Ne laisse pas dévier nos cœurs après que Tu nous aies guidés; et accorde-nous Ta miséricorde, car c'est Toi le Très Généreux",
+        "nl": "Onze Heer, laat onze harten niet afwijken nadat Gij ons hebt geleid. Geef ons barmhartigheid van Jezelf; inderdaad, Gij zijt de Gever"
+      },
+      {
+        "number": 9,
+        "ar": "رَبَّنَا إِنَّكَ جَامِعُ النَّاسِ لِيَوْمٍ لَّا رَيْبَ فِيهِ ۚ إِنَّ اللَّهَ لَا يُخْلِفُ الْمِيعَادَ",
+        "en": "Our Lord, indeed You will gather the people for a Day about which there is no doubt. Indeed, Allah does not fail in His promise",
+        "fr": "Seigneur ! Tu rassembleras certainement les gens pour un Jour dont il n'y a pas de doute. Allah ne manque jamais à Sa promesse",
+        "nl": "Onze Heer, inderdaad Gij zult de mensen verzamelen voor een Dag waarover geen twijfel bestaat. Inderdaad, Allah faalt nooit in Zijn belofte"
+      },
+      {
+        "number": 10,
+        "ar": "إِنَّ الَّذِينَ كَفَرُوا لَن تُغْنِيَ عَنْهُمْ أَمْوَالُهُمْ وَلَا أَوْلَادُهُم مِّنَ اللَّهِ شَيْئًا ۖ وَأُولَٰئِكَ هُمْ وَقُودُ النَّارِ",
+        "en": "Indeed, those who have disbelieved - never will their wealth and not their children avail them against Allah at all. And those are the companions of the Fire; they will abide therein eternally",
+        "fr": "Ceux qui ont mécru, ni leurs biens ni leurs enfants ne les sauveront aucunement contre Allah. Et ceux-là seront le combustible du Feu",
+        "nl": "Inderdaad, degenen die ongelovig zijn, hun rijkdom noch hun kinderen zullen hen tegen Allah helpen. En zij zijn de brandstof van het Vuur"
+      }
+    ]
+  },
+  "114": {
+    "name": "An-Nas",
+    "name_ar": "الناس",
+    "ayahs": [
+      {
+        "number": 1,
+        "ar": "قُلْ أَعُوذُ بِرَبِّ النَّاسِ",
+        "en": "Say, I seek refuge in the Lord of mankind",
+        "fr": "Dis: Je cherche refuge auprès du Seigneur des hommes",
+        "nl": "Zeg: Ik zoek toevlucht bij de Heer der mensen"
+      },
+      {
+        "number": 2,
+        "ar": "مَلِكِ النَّاسِ",
+        "en": "The King of mankind",
+        "fr": "Le Souverain des hommes",
+        "nl": "De Koning der mensen"
+      },
+      {
+        "number": 3,
+        "ar": "إِلَٰهِ النَّاسِ",
+        "en": "The God of mankind",
+        "fr": "Le Dieu des hommes",
+        "nl": "De God der mensen"
+      },
+      {
+        "number": 4,
+        "ar": "مِن شَرِّ الْوَسْوَاسِ الْخَنَّاسِ",
+        "en": "From the evil of the retreating whisperer",
+        "fr": "Du mal du mauvais conseiller, celui qui se dérobe",
+        "nl": "Van het kwaad van de wegsluipende fluisteraar"
+      },
+      {
+        "number": 5,
+        "ar": "الَّذِي يُوَسْوِسُ فِي صُدُورِ النَّاسِ",
+        "en": "Who whispers [evil] into the breasts of mankind",
+        "fr": "Qui souffle le mal dans les poitrines des hommes",
+        "nl": "Die fluistert in de borsten der mensen"
+      },
+      {
+        "number": 6,
+        "ar": "مِنَ الْجِنَّةِ وَالنَّاسِ",
+        "en": "From among the jinn and mankind",
+        "fr": "Parmi les djinns et les hommes",
+        "nl": "Van onder de jinns en de mensen"
+      }
+    ]
+  }
+}

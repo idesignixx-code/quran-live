@@ -1,0 +1,28 @@
+# Core Flask
+Flask==3.0.0
+Flask-SocketIO==5.3.5
+Flask-CORS==4.0.0
+python-socketio==5.10.0
+
+# Database
+SQLAlchemy==2.0.23
+
+# Caching
+redis==5.0.1
+
+# Audio Processing (optional - for Whisper integration)
+# openai-whisper==20231117
+# torch==2.1.0
+# torchaudio==2.1.0
+
+# Performance & Data Processing
+numpy==1.24.3
+python-Levenshtein==0.21.1
+
+# Utilities
+python-dotenv==1.0.0
+eventlet==0.33.3
+
+# Testing
+pytest==7.4.3
+pytest-cov==4.1.0
