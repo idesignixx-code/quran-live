@@ -1,48 +1,49 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-نظام الترجمة الفورية للقرآن الكريم - نسخة مبسطة سريعة
-Quick Start Version - No Freeze
-"""
 
-import sys
 import os
+import sys
+import json
+from datetime import datetime
+import time
+from difflib import SequenceMatcher
 
 # Fix Unicode on Windows
 if sys.platform == 'win32':
-    os.system('chcp 65001 > nul')
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 from flask import Flask, render_template, request, jsonify
 from flask_socketio import SocketIO, emit
-import json
-import time
-from datetime import datetime
+from flask_cors import CORS
 
-# Paths
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-TEMPLATE_DIR = os.path.join(os.path.dirname(BASE_DIR), 'templates')
-DATA_PATH = os.path.join(os.path.dirname(BASE_DIR), 'data', 'quran.json')
-
-# Flask App
-app = Flask(__name__, template_folder=TEMPLATE_DIR)
-app.config['SECRET_KEY'] = 'quran-live-2025'
-
-# Socket.IO
+app = Flask(__name__)
+app.config['SECRET_KEY'] = 'quran-live-secret-2024'
+CORS(app)
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 
-print("\n" + "="*70)
-print("Loading Quran data...")
+# تحديد مسار البيانات
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_PATH = os.path.join(os.path.dirname(BASE_DIR), 'data', 'quran.json')
 
-# Load Quran Data
+print("\n" + "="*70)
+print("🌙 QURAN LIVE TRANSLATION - Simple Mode")
+print("="*70)
+print(f"📁 Data path: {DATA_PATH}")
+print(f"✓ File exists: {os.path.exists(DATA_PATH)}")
+
+# تحميل البيانات
 quran_data = {}
 try:
     with open(DATA_PATH, 'r', encoding='utf-8') as f:
         quran_data = json.load(f)
-    print(f"Loaded {len(quran_data)} surahs successfully")
+    print(f"✅ Loaded {len(quran_data)} surahs successfully")
 except Exception as e:
-    print(f"Error loading data: {e}")
-    print(f"Looking for: {DATA_PATH}")
+    print(f"❌ Error loading data: {e}")
+    sys.exit(1)
 
-# Build simple index
+# بناء الفهرس
 verses_index = {}
 for surah_num, surah in quran_data.items():
     for ayah in surah.get('ayahs', []):
@@ -57,20 +58,20 @@ for surah_num, surah in quran_data.items():
             'surah_name': surah.get('name', '')
         }
 
-print(f"Indexed {len(verses_index)} verses")
-print("="*70)
+print(f"✅ Indexed {len(verses_index)} verses")
+print("="*70 + "\n")
 
-# Sequential prediction state
+# حالة التنبؤ التسلسلي
 current_surah = None
 last_ayah = None
 
-# Advanced text normalizer (same as original)
+# دالة التطبيع
 def normalize(text):
     import re
     if not text:
         return ""
     
-    # Handle common Muqatta'at (الحروف المقطعة)
+    # معالجة الحروف المقطعة
     muqattaat_map = {
         'الف لام ميم': 'الم',
         'ألف لام ميم': 'الم',
@@ -82,68 +83,64 @@ def normalize(text):
         'حا ميم': 'حم',
     }
     
-    # Replace Muqatta'at
     text_lower = text.lower()
     for variant, original in muqattaat_map.items():
         if text_lower.startswith(variant):
             text = original + text[len(variant):]
             break
     
-    # Remove diacritics
+    # إزالة التشكيل
     text = re.sub(r'[ًٌٍَُِّْـ]', '', text)
-    # Remove special characters
+    # إزالة الأحرف الخاصة
     text = re.sub(r'[^\w\s]', '', text)
-    # Normalize specific Arabic letters
+    # توحيد الأحرف
     text = text.replace('أ', 'ا').replace('إ', 'ا').replace('آ', 'ا')
     text = text.replace('ى', 'ي').replace('ة', 'ه')
     text = text.replace('ؤ', 'و').replace('ئ', 'ي')
     
     return text.strip().lower()
 
-# Calculate similarity
+# دالة حساب التشابه
 def similarity(text1, text2):
-    from difflib import SequenceMatcher
     if not text1 or not text2:
         return 0.0
     return SequenceMatcher(None, text1, text2).ratio()
 
-# Advanced search (optimized for fast reading)
+# دالة البحث المحسّنة
 def search_verse(text):
     global current_surah, last_ayah
     
     normalized = normalize(text)
-    if len(normalized) < 2:  # تقليل الحد الأدنى من 3 إلى 2
+    if len(normalized) < 2:
         return None
     
-    # Try sequential prediction first (most common in continuous reading)
+    # محاولة التنبؤ التسلسلي أولاً
     if current_surah and last_ayah:
-        # Try next 3 verses (for fast sequential reading)
         for offset in range(1, 4):
             next_ayah = last_ayah + offset
             next_key = f"{current_surah}:{next_ayah}"
             if next_key in verses_index:
                 expected = verses_index[next_key]
                 score = similarity(normalized, normalize(expected['ar']))
-                if score >= 0.55:  # تقليل العتبة من 0.65 إلى 0.55 للقراءة السريعة
+                if score >= 0.50:
                     last_ayah = next_ayah
                     return expected
     
     best_match = None
     best_score = 0.0
     
-    # Calculate text length for filtering (more lenient)
+    # حساب طول النص
     text_len = len(normalized)
-    min_len = max(1, text_len - int(text_len * 0.4))  # زيادة التسامح من 0.3 إلى 0.4
+    min_len = max(1, text_len - int(text_len * 0.4))
     max_len = text_len + int(text_len * 0.4)
     
-    # Quick partial match first (for speed)
+    # بحث سريع بالكلمات
     text_words = set(normalized.split())
     if len(text_words) >= 2:
         for key, verse in verses_index.items():
             verse_norm = normalize(verse['ar'])
             verse_words = set(verse_norm.split())
             
-            # Quick word overlap check
             common_words = text_words & verse_words
             if len(common_words) >= min(2, len(text_words) * 0.5):
                 score = similarity(normalized, verse_norm)
@@ -152,32 +149,28 @@ def search_verse(text):
                     best_score = score
                     best_match = verse
                 
-                # Early exit for very high confidence
-                if score > 0.92:  # تقليل من 0.95
+                if score > 0.90:
                     current_surah = verse['surah']
                     last_ayah = verse['ayah']
                     return verse
     
-    # Full search if no quick match
-    if best_score < 0.55:
+    # بحث كامل
+    if best_score < 0.50:
         for key, verse in verses_index.items():
             verse_norm = normalize(verse['ar'])
             verse_len = len(verse_norm)
             
-            # Skip if length difference is too large
             if verse_len < min_len or verse_len > max_len:
                 continue
             
-            # Calculate similarity
             score = similarity(normalized, verse_norm)
             
-            # Update best match
             if score > best_score:
                 best_score = score
                 best_match = verse
     
-    # Return if score is good enough (lowered threshold)
-    if best_score >= 0.50:  # تقليل من 0.65 إلى 0.50
+    # إرجاع النتيجة
+    if best_score >= 0.45:
         if best_match:
             current_surah = best_match['surah']
             last_ayah = best_match['ayah']
@@ -192,13 +185,11 @@ def index():
 
 @app.route('/live')
 def live():
-    """صفحة العرض المباشر مع دعم اللغات"""
     lang = request.args.get('lang', 'en')
     return render_template('live.html', lang=lang)
 
 @app.route('/mobile')
 def mobile():
-    """صفحة الموبايل مع الميكروفون"""
     lang = request.args.get('lang', 'en')
     return render_template('mobile.html', lang=lang)
 
@@ -222,12 +213,12 @@ def get_verse(surah, ayah):
 # WebSocket Events
 @socketio.on('connect')
 def handle_connect():
-    print("Client connected")
+    print("✓ Client connected")
     emit('connection_status', {'connected': True})
 
 @socketio.on('disconnect')
 def handle_disconnect():
-    print("Client disconnected")
+    print("✗ Client disconnected")
 
 @socketio.on('set_surah')
 def handle_set_surah(data):
@@ -236,7 +227,7 @@ def handle_set_surah(data):
     if surah:
         current_surah = surah
         last_ayah = 0
-        print(f"Surah set to: {surah}")
+        print(f"📖 Surah set to: {surah}")
         emit('surah_set', {'surah': surah}, broadcast=True)
 
 @socketio.on('reset_matcher')
@@ -244,67 +235,8 @@ def handle_reset():
     global current_surah, last_ayah
     current_surah = None
     last_ayah = None
-    print("Matcher reset")
+    print("🔄 Matcher reset")
     emit('matcher_reset', {'message': 'Reset successful'}, broadcast=True)
-
-@socketio.on('audio_data')
-def handle_audio(data):
-    """
-    معالجة الصوت من الموبايل
-    """
-    try:
-        import base64
-        import tempfile
-        
-        audio_base64 = data.get('audio', '')
-        lang = data.get('lang', 'en')
-        
-        print(f"[AUDIO] Received audio data ({len(audio_base64)} bytes)")
-        
-        # Decode base64 audio
-        audio_bytes = base64.b64decode(audio_base64)
-        
-        # Save temporarily
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.wav') as temp_audio:
-            temp_audio.write(audio_bytes)
-            temp_path = temp_audio.name
-        
-        try:
-            # Option 1: Using Web Speech API (recommended for mobile)
-            # The transcription is done in the browser, so we receive text directly
-            
-            # Option 2: Using Whisper (requires: pip install openai-whisper)
-            # Uncomment this when you install Whisper:
-            """
-            import whisper
-            model = whisper.load_model("base")
-            result = model.transcribe(temp_path, language="ar")
-            text = result["text"]
-            print(f"[AUDIO] Transcribed: {text}")
-            
-            # Send to recognition
-            emit('recognize_verse', {
-                'text': text,
-                'lang': lang
-            }, broadcast=True)
-            """
-            
-            # For now, send notification that audio was received
-            print("[AUDIO] Audio received successfully")
-            emit('audio_received', {
-                'status': 'success',
-                'message': 'Audio received. Install Whisper for transcription.'
-            })
-            
-        finally:
-            # Clean up temp file
-            import os
-            if os.path.exists(temp_path):
-                os.remove(temp_path)
-        
-    except Exception as e:
-        print(f"[AUDIO] Error processing audio: {e}")
-        emit('error', {'message': 'Failed to process audio'})
 
 @socketio.on('recognize_verse')
 def handle_recognize(data):
@@ -316,40 +248,38 @@ def handle_recognize(data):
     
     start_time = time.time()
     
-    print(f"Searching: {text[:50]}... (lang={lang})")
+    print(f"🔍 Searching: {text[:50]}... | Lang: {lang}")
     verse = search_verse(text)
     
     response_time = (time.time() - start_time) * 1000
     
     if verse:
-        print(f"Found: {verse['surah']}:{verse['ayah']} ({response_time:.1f}ms)")
+        print(f"✅ Found: {verse['surah']}:{verse['ayah']} ({response_time:.1f}ms)")
         
-        # Calculate confidence
         confidence = similarity(normalize(text), normalize(verse['ar']))
         
-        # Get translation for the requested language
-        translation = verse.get(lang, verse.get('en', ''))
+        # إعداد بيانات الآية مع كل الترجمات
+        verse_data = {
+            'surah': verse['surah'],
+            'ayah': verse['ayah'],
+            'ar': verse['ar'],
+            'en': verse.get('en', ''),
+            'fr': verse.get('fr', ''),
+            'nl': verse.get('nl', ''),
+            'translation': verse.get(lang, verse.get('en', ''))
+        }
         
-        # Debug log
-        print(f"Translation ({lang}): {translation[:50]}...")
+        print(f"📝 Translation ({lang}): {verse_data['translation'][:50]}...")
         
-        # Send matched verse with all language data
+        # إرسال الآية
         emit('verse_matched', {
-            'verse': {
-                'surah': verse['surah'],
-                'ayah': verse['ayah'],
-                'ar': verse['ar'],
-                'en': verse.get('en', ''),
-                'fr': verse.get('fr', ''),
-                'nl': verse.get('nl', ''),
-                'translation': translation  # For backward compatibility
-            },
+            'verse': verse_data,
             'confidence': round(confidence, 2),
             'source': 'simple_search',
             'response_time_ms': round(response_time, 1)
         }, broadcast=True)
         
-        # Get next verses (3 verses)
+        # الآيات التالية
         next_verses = []
         for i in range(1, 4):
             next_ayah = verse['ayah'] + i
@@ -372,7 +302,7 @@ def handle_recognize(data):
                 'count': len(next_verses)
             }, broadcast=True)
     else:
-        print(f"No match found ({response_time:.1f}ms)")
+        print(f"❌ No match ({response_time:.1f}ms)")
         emit('no_match', {
             'reason': 'not_found',
             'response_time_ms': round(response_time, 1)
@@ -380,14 +310,18 @@ def handle_recognize(data):
 
 # Main
 if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
+    
     print("\n" + "="*70)
-    print("Starting server...")
-    print("Open: http://localhost:5000")
+    print("🚀 Starting Quran Live Translation Server")
+    print(f"📡 Port: {port}")
+    print(f"🌍 Environment: {'Production' if os.environ.get('PORT') else 'Development'}")
     print("="*70 + "\n")
     
     socketio.run(
         app,
         host='0.0.0.0',
-        port=5000,
-        debug=False
+        port=port,
+        debug=False,
+        allow_unsafe_werkzeug=True
     )
