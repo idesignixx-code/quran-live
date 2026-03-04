@@ -77,7 +77,7 @@
             transform: scale(1.1);
         }
         
-        .mic-button.recording {
+        .mic-button.listening {
             background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
             animation: pulse-red 1.5s infinite;
         }
@@ -85,6 +85,7 @@
         @keyframes pulse-red {
             0%, 100% { 
                 box-shadow: 0 10px 30px rgba(239, 68, 68, 0.4);
+                transform: scale(1);
             }
             50% { 
                 box-shadow: 0 10px 50px rgba(239, 68, 68, 0.8);
@@ -95,18 +96,38 @@
         .next-verse {
             background: rgba(30, 41, 59, 0.6);
             border-left: 3px solid #3b82f6;
-            transition: all 0.3s;
         }
         
-        .next-verse:hover {
-            background: rgba(30, 41, 59, 0.9);
+        .auto-start-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
         }
     </style>
 </head>
 <body class="h-screen flex flex-col">
     
+    <!-- Auto-start overlay -->
+    <div class="auto-start-overlay" id="start-overlay">
+        <div class="text-center p-8">
+            <div class="text-8xl mb-8">🎤</div>
+            <h2 class="text-4xl font-bold mb-6">Quran Live Translation</h2>
+            <p class="text-xl text-gray-300 mb-12">Click to start continuous listening</p>
+            <button onclick="startListening()" class="px-12 py-6 bg-green-600 hover:bg-green-700 rounded-2xl text-2xl font-bold transition-all shadow-2xl">
+                Start Listening
+            </button>
+        </div>
+    </div>
+    
     <!-- Microphone Button (Floating) -->
-    <div class="mic-button" id="mic-button" onclick="toggleRecording()" title="Click to record">
+    <div class="mic-button" id="mic-button" onclick="toggleListening()" title="Toggle listening">
         <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
             <path fill-rule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clip-rule="evenodd"></path>
         </svg>
@@ -129,7 +150,7 @@
                     <div class="text-2xl md:text-3xl font-bold text-green-400" id="confidence-value">100%</div>
                 </div>
                 <div class="flex items-center space-x-2">
-                    <div class="w-3 h-3 rounded-full bg-gray-500 animate-pulse" id="status-dot"></div>
+                    <div class="w-3 h-3 rounded-full bg-gray-500" id="status-dot"></div>
                     <span class="text-sm font-medium text-gray-400" id="status-text">Connecting</span>
                 </div>
             </div>
@@ -144,21 +165,18 @@
     <!-- Main Content -->
     <div class="flex-1 flex flex-col justify-center px-6 md:px-12 lg:px-20 py-8 overflow-auto">
         
-        <!-- Arabic Verse -->
         <div class="mb-8 md:mb-12">
             <p class="verse-arabic font-quran text-center" id="arabic-text">
                 بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
             </p>
         </div>
         
-        <!-- Translation -->
         <div class="mb-12">
             <p class="verse-translation text-center" style="color: rgba(255, 255, 255, 0.9);" id="translation-text">
                 In the name of Allah, the Most Gracious, the Most Merciful
             </p>
         </div>
         
-        <!-- Upcoming Verses -->
         <div class="mt-auto">
             <div class="text-gray-500 text-xs uppercase tracking-wide mb-4">— Upcoming Verses</div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="next-verses-container"></div>
@@ -168,9 +186,9 @@
     <!-- Footer -->
     <div class="header-bar px-8 py-3 text-center border-t border-gray-800">
         <p class="text-xs text-gray-500">
-            response: <span id="response-time" class="font-mono text-blue-400">--</span>
+            <span id="mic-status" class="text-green-400 font-bold">Listening...</span>
             <span class="mx-2">|</span>
-            <span id="mic-status" class="text-gray-400">Click mic to record</span>
+            response: <span id="response-time" class="font-mono text-blue-400">--</span>
         </p>
     </div>
     
@@ -189,67 +207,102 @@
         document.getElementById('language-display').textContent = `Live · ${config.name}`;
         
         const socket = io();
-        let isRecording = false;
+        let isListening = false;
         let recognition = null;
+        let shouldRestart = false;
         
-        // Initialize Speech Recognition
-        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        function initRecognition() {
+            if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+                alert('Speech recognition not supported. Use Chrome or Edge.');
+                return false;
+            }
+            
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             recognition = new SpeechRecognition();
             recognition.lang = 'ar-SA';
-            recognition.continuous = false;
+            recognition.continuous = true;  // التسجيل المستمر
             recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
             
             recognition.onresult = (event) => {
-                const text = event.results[0][0].transcript;
-                console.log('Recognized:', text);
-                
-                document.getElementById('mic-status').textContent = 'Processing...';
-                
-                socket.emit('recognize_verse', {
-                    text: text,
-                    lang: language
-                });
+                const lastResult = event.results[event.results.length - 1];
+                if (lastResult.isFinal) {
+                    const text = lastResult[0].transcript;
+                    console.log('Recognized:', text);
+                    
+                    socket.emit('recognize_verse', {
+                        text: text,
+                        lang: language
+                    });
+                }
             };
             
             recognition.onerror = (event) => {
                 console.error('Speech error:', event.error);
-                isRecording = false;
-                document.getElementById('mic-button').classList.remove('recording');
-                document.getElementById('mic-status').textContent = 'Error: ' + event.error;
                 
-                setTimeout(() => {
-                    document.getElementById('mic-status').textContent = 'Click mic to record';
-                }, 3000);
+                // تجاهل أخطاء aborted و no-speech
+                if ((event.error === 'aborted' || event.error === 'no-speech') && shouldRestart && isListening) {
+                    setTimeout(() => {
+                        try {
+                            recognition.start();
+                        } catch (e) {}
+                    }, 100);
+                }
             };
             
             recognition.onend = () => {
-                isRecording = false;
-                document.getElementById('mic-button').classList.remove('recording');
-                if (document.getElementById('mic-status').textContent === 'Recording...') {
-                    document.getElementById('mic-status').textContent = 'Processing...';
+                // إعادة التشغيل تلقائياً
+                if (shouldRestart && isListening) {
+                    setTimeout(() => {
+                        try {
+                            recognition.start();
+                        } catch (e) {}
+                    }, 100);
                 }
             };
+            
+            return true;
         }
         
-        function toggleRecording() {
-            if (!recognition) {
-                alert('Speech recognition not supported in this browser. Please use Chrome or Edge.');
+        function startListening() {
+            document.getElementById('start-overlay').style.display = 'none';
+            
+            if (!recognition && !initRecognition()) {
                 return;
             }
             
-            if (!isRecording) {
-                try {
-                    recognition.start();
-                    isRecording = true;
-                    document.getElementById('mic-button').classList.add('recording');
-                    document.getElementById('mic-status').textContent = 'Recording...';
-                } catch (e) {
-                    console.error('Error starting recognition:', e);
-                    alert('Please allow microphone access');
-                }
-            } else {
+            try {
+                isListening = true;
+                shouldRestart = true;
+                recognition.start();
+                
+                document.getElementById('mic-button').classList.add('listening');
+                document.getElementById('mic-status').textContent = 'Listening...';
+                document.getElementById('mic-status').className = 'text-green-400 font-bold';
+                
+            } catch (e) {
+                console.error('Start error:', e);
+            }
+        }
+        
+        function stopListening() {
+            shouldRestart = false;
+            isListening = false;
+            
+            if (recognition) {
                 recognition.stop();
+            }
+            
+            document.getElementById('mic-button').classList.remove('listening');
+            document.getElementById('mic-status').textContent = 'Stopped';
+            document.getElementById('mic-status').className = 'text-red-400 font-bold';
+        }
+        
+        function toggleListening() {
+            if (isListening) {
+                stopListening();
+            } else {
+                startListening();
             }
         }
         
@@ -277,7 +330,7 @@
                 arabicEl.textContent = verse.ar;
             }, 10);
             
-            let translation = verse[language] || verse.en || 'Translation not available';
+            let translation = verse[language] || verse.en || '';
             const translationEl = document.getElementById('translation-text');
             translationEl.style.animation = 'none';
             setTimeout(() => {
@@ -292,11 +345,6 @@
             if (data.response_time_ms) {
                 document.getElementById('response-time').textContent = `${data.response_time_ms.toFixed(1)}ms`;
             }
-            
-            document.getElementById('mic-status').textContent = 'Found! ✅';
-            setTimeout(() => {
-                document.getElementById('mic-status').textContent = 'Click mic to record';
-            }, 3000);
         });
         
         socket.on('next_verses', (data) => {
@@ -312,8 +360,8 @@
                         <div class="flex items-start space-x-3">
                             <span class="text-blue-400 font-bold text-xl">${verse.ayah}</span>
                             <div class="flex-1">
-                                <p class="text-white text-base font-quran mb-2 line-clamp-1">${verse.ar}</p>
-                                <p class="text-gray-300 text-sm line-clamp-2">${translation}</p>
+                                <p class="text-white text-base font-quran mb-2">${verse.ar.substring(0, 80)}...</p>
+                                <p class="text-gray-300 text-sm">${translation.substring(0, 100)}...</p>
                             </div>
                         </div>
                     `;
@@ -322,20 +370,16 @@
             }
         });
         
-        socket.on('no_match', () => {
-            document.getElementById('mic-status').textContent = 'No match found';
-            setTimeout(() => {
-                document.getElementById('mic-status').textContent = 'Click mic to record';
-            }, 3000);
-        });
-        
         // Keyboard shortcut
         document.addEventListener('keydown', (e) => {
             if (e.key === ' ' || e.key === 'm' || e.key === 'M') {
                 e.preventDefault();
-                toggleRecording();
+                toggleListening();
             }
         });
+        
+        // Initialize
+        initRecognition();
     </script>
 </body>
 </html>
