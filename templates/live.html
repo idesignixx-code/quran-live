@@ -8,146 +8,170 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@700&family=Scheherazade+New:wght@700&family=Noto+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Scheherazade+New:wght@700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     
     <style>
         body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Noto Sans', sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            font-family: 'Roboto', sans-serif;
+            background: #0f1419;
             color: white;
             overflow: hidden;
         }
         
-        .font-arabic { font-family: 'Amiri', serif; }
         .font-quran { font-family: 'Scheherazade New', serif; }
         
+        .header-bar {
+            background: rgba(20, 30, 48, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+        }
+        
+        .confidence-bar {
+            height: 4px;
+            background: linear-gradient(90deg, #10b981 0%, #3b82f6 100%);
+            transition: width 0.5s;
+        }
+        
         .verse-arabic {
-            font-size: clamp(3rem, 8vw, 8rem);
-            line-height: 1.6;
-            text-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
-            animation: fadeInScale 0.6s ease-out;
+            font-size: clamp(2.5rem, 10vw, 10rem);
+            line-height: 1.8;
+            animation: fadeInScale 0.7s;
+            text-shadow: 0 0 40px rgba(255, 255, 255, 0.15);
         }
         
         .verse-translation {
-            font-size: clamp(1.5rem, 4vw, 4rem);
-            line-height: 1.5;
-            animation: fadeInUp 0.6s ease-out 0.1s both;
+            font-size: clamp(1.25rem, 3.5vw, 3.5rem);
+            line-height: 1.6;
+            animation: fadeInUp 0.7s 0.1s both;
         }
         
         @keyframes fadeInScale {
-            from { opacity: 0; transform: scale(0.9) translateY(20px); }
+            from { opacity: 0; transform: scale(0.95) translateY(20px); }
             to { opacity: 1; transform: scale(1) translateY(0); }
         }
         
         @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(30px); }
+            from { opacity: 0; transform: translateY(40px); }
             to { opacity: 1; transform: translateY(0); }
         }
         
-        .info-bar {
-            background: rgba(15, 23, 42, 0.8);
-            backdrop-filter: blur(10px);
-            border-bottom: 2px solid rgba(59, 130, 246, 0.3);
+        .mic-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 3px solid rgba(16, 185, 129, 0.3);
+            z-index: 1000;
+        }
+        
+        .mic-button:hover {
+            transform: scale(1.1);
+        }
+        
+        .mic-button.recording {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            animation: pulse-red 1.5s infinite;
+        }
+        
+        @keyframes pulse-red {
+            0%, 100% { 
+                box-shadow: 0 10px 30px rgba(239, 68, 68, 0.4);
+            }
+            50% { 
+                box-shadow: 0 10px 50px rgba(239, 68, 68, 0.8);
+                transform: scale(1.15);
+            }
         }
         
         .next-verse {
-            background: rgba(15, 23, 42, 0.6);
+            background: rgba(30, 41, 59, 0.6);
             border-left: 3px solid #3b82f6;
             transition: all 0.3s;
         }
         
         .next-verse:hover {
-            background: rgba(15, 23, 42, 0.9);
-        }
-        
-        .sajdah-popup {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-            padding: 3rem;
-            border-radius: 1.5rem;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            animation: popIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            z-index: 1000;
-        }
-        
-        @keyframes popIn {
-            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
-            100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-        }
-        
-        .confidence-bar {
-            height: 6px;
-            background: linear-gradient(90deg, #10b981 0%, #3b82f6 100%);
-            border-radius: 3px;
-            transition: width 0.5s ease;
+            background: rgba(30, 41, 59, 0.9);
         }
     </style>
 </head>
-<body class="h-full flex flex-col">
+<body class="h-screen flex flex-col">
     
-    <div class="info-bar px-6 py-4 flex items-center justify-between">
-        <div class="flex items-center space-x-4">
-            <span class="text-3xl">🌙</span>
-            <div>
-                <h1 class="text-xl font-bold" id="surah-info">Waiting...</h1>
-                <p class="text-sm text-blue-300" id="language-label">Live Translation</p>
+    <!-- Microphone Button (Floating) -->
+    <div class="mic-button" id="mic-button" onclick="toggleRecording()" title="Click to record">
+        <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clip-rule="evenodd"></path>
+        </svg>
+    </div>
+    
+    <!-- Header -->
+    <div class="header-bar px-4 md:px-8 py-4">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <span class="text-3xl">🌙</span>
+                <div>
+                    <div class="text-lg md:text-xl font-bold" id="surah-info">Surah 1 : 1</div>
+                    <div class="text-xs md:text-sm text-gray-400" id="language-display">Live · English</div>
+                </div>
             </div>
-        </div>
-        
-        <div class="flex items-center space-x-6">
-            <div class="text-right">
-                <div class="text-xs text-gray-400">Confidence</div>
-                <div class="text-lg font-bold text-green-400" id="confidence-text">--</div>
-            </div>
-            <div class="flex items-center space-x-2">
-                <div class="w-3 h-3 rounded-full bg-gray-500" id="status-dot"></div>
-                <span class="text-sm font-semibold text-gray-400" id="status-text">Connecting...</span>
+            
+            <div class="flex items-center space-x-4 md:space-x-6">
+                <div class="text-right">
+                    <div class="text-xs text-gray-400 uppercase">Confidence</div>
+                    <div class="text-2xl md:text-3xl font-bold text-green-400" id="confidence-value">100%</div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <div class="w-3 h-3 rounded-full bg-gray-500 animate-pulse" id="status-dot"></div>
+                    <span class="text-sm font-medium text-gray-400" id="status-text">Connecting</span>
+                </div>
             </div>
         </div>
     </div>
     
-    <div class="w-full bg-gray-800 h-1.5">
-        <div class="confidence-bar" style="width: 0%" id="confidence-bar"></div>
+    <!-- Confidence Bar -->
+    <div class="w-full bg-gray-800 h-1">
+        <div class="confidence-bar" id="confidence-bar" style="width: 100%"></div>
     </div>
     
-    <div class="flex-1 flex flex-col justify-center px-8 md:px-16 lg:px-24 overflow-auto">
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col justify-center px-6 md:px-12 lg:px-20 py-8 overflow-auto">
         
-        <div class="text-center mb-8 md:mb-12">
-            <p class="verse-arabic font-quran text-white" id="arabic-text">
+        <!-- Arabic Verse -->
+        <div class="mb-8 md:mb-12">
+            <p class="verse-arabic font-quran text-center" id="arabic-text">
                 بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
             </p>
         </div>
         
-        <div class="text-center mb-8">
-            <p class="verse-translation font-arabic text-blue-100" id="translation-text">
+        <!-- Translation -->
+        <div class="mb-12">
+            <p class="verse-translation text-center" style="color: rgba(255, 255, 255, 0.9);" id="translation-text">
                 In the name of Allah, the Most Gracious, the Most Merciful
             </p>
         </div>
         
-        <div class="mt-auto pb-6">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="next-verses-container">
-            </div>
+        <!-- Upcoming Verses -->
+        <div class="mt-auto">
+            <div class="text-gray-500 text-xs uppercase tracking-wide mb-4">— Upcoming Verses</div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="next-verses-container"></div>
         </div>
     </div>
     
-    <div class="info-bar px-6 py-3 text-center">
-        <p class="text-xs text-gray-400">
-            Response: <span id="response-time" class="font-mono text-blue-300">--</span>
+    <!-- Footer -->
+    <div class="header-bar px-8 py-3 text-center border-t border-gray-800">
+        <p class="text-xs text-gray-500">
+            response: <span id="response-time" class="font-mono text-blue-400">--</span>
+            <span class="mx-2">|</span>
+            <span id="mic-status" class="text-gray-400">Click mic to record</span>
         </p>
-    </div>
-    
-    <div id="sajdah-alert" style="display: none;">
-        <div class="sajdah-popup text-center text-white">
-            <div class="text-6xl mb-4">🤲</div>
-            <h2 class="text-4xl font-bold mb-2">Prostration Verse</h2>
-            <p class="text-2xl opacity-90 mb-4" id="sajdah-details">--</p>
-        </div>
     </div>
     
     <script>
@@ -155,39 +179,96 @@
         const language = urlParams.get('lang') || 'en';
         
         const langConfig = {
-            'ar': { name: 'العربية', dir: 'rtl' },
-            'en': { name: 'English', dir: 'ltr' },
-            'fr': { name: 'Français', dir: 'ltr' },
-            'nl': { name: 'Nederlands', dir: 'ltr' }
+            'ar': { name: 'Arabic' },
+            'en': { name: 'English' },
+            'fr': { name: 'French' },
+            'nl': { name: 'Dutch' }
         };
         
         const config = langConfig[language] || langConfig['en'];
-        document.documentElement.dir = config.dir;
-        document.getElementById('language-label').textContent = `Live Translation - ${config.name}`;
+        document.getElementById('language-display').textContent = `Live · ${config.name}`;
         
         const socket = io();
+        let isRecording = false;
+        let recognition = null;
+        
+        // Initialize Speech Recognition
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.lang = 'ar-SA';
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            
+            recognition.onresult = (event) => {
+                const text = event.results[0][0].transcript;
+                console.log('Recognized:', text);
+                
+                document.getElementById('mic-status').textContent = 'Processing...';
+                
+                socket.emit('recognize_verse', {
+                    text: text,
+                    lang: language
+                });
+            };
+            
+            recognition.onerror = (event) => {
+                console.error('Speech error:', event.error);
+                isRecording = false;
+                document.getElementById('mic-button').classList.remove('recording');
+                document.getElementById('mic-status').textContent = 'Error: ' + event.error;
+                
+                setTimeout(() => {
+                    document.getElementById('mic-status').textContent = 'Click mic to record';
+                }, 3000);
+            };
+            
+            recognition.onend = () => {
+                isRecording = false;
+                document.getElementById('mic-button').classList.remove('recording');
+                if (document.getElementById('mic-status').textContent === 'Recording...') {
+                    document.getElementById('mic-status').textContent = 'Processing...';
+                }
+            };
+        }
+        
+        function toggleRecording() {
+            if (!recognition) {
+                alert('Speech recognition not supported in this browser. Please use Chrome or Edge.');
+                return;
+            }
+            
+            if (!isRecording) {
+                try {
+                    recognition.start();
+                    isRecording = true;
+                    document.getElementById('mic-button').classList.add('recording');
+                    document.getElementById('mic-status').textContent = 'Recording...';
+                } catch (e) {
+                    console.error('Error starting recognition:', e);
+                    alert('Please allow microphone access');
+                }
+            } else {
+                recognition.stop();
+            }
+        }
         
         socket.on('connect', () => {
-            console.log('✅ Connected');
-            document.getElementById('status-dot').className = 'w-3 h-3 rounded-full bg-green-500 animate-pulse';
+            document.getElementById('status-dot').style.background = '#10b981';
             document.getElementById('status-text').textContent = 'Connected';
-            document.getElementById('status-text').className = 'text-sm font-semibold text-green-400';
+            document.getElementById('status-text').className = 'text-sm font-medium text-green-400';
         });
         
         socket.on('disconnect', () => {
-            console.log('❌ Disconnected');
-            document.getElementById('status-dot').className = 'w-3 h-3 rounded-full bg-red-500';
+            document.getElementById('status-dot').style.background = '#ef4444';
             document.getElementById('status-text').textContent = 'Disconnected';
-            document.getElementById('status-text').className = 'text-sm font-semibold text-red-400';
+            document.getElementById('status-text').className = 'text-sm font-medium text-red-400';
         });
         
         socket.on('verse_matched', (data) => {
             const verse = data.verse;
             
-            console.log('📖 Verse:', verse);
-            console.log('🌍 Lang:', language);
-            
-            document.getElementById('surah-info').textContent = `Surah ${verse.surah} - Verse ${verse.ayah}`;
+            document.getElementById('surah-info').textContent = `Surah ${verse.surah} : ${verse.ayah}`;
             
             const arabicEl = document.getElementById('arabic-text');
             arabicEl.style.animation = 'none';
@@ -197,8 +278,6 @@
             }, 10);
             
             let translation = verse[language] || verse.en || 'Translation not available';
-            console.log('💬 Translation:', translation);
-            
             const translationEl = document.getElementById('translation-text');
             translationEl.style.animation = 'none';
             setTimeout(() => {
@@ -207,12 +286,17 @@
             }, 10);
             
             const confidence = Math.round((data.confidence || 0) * 100);
-            document.getElementById('confidence-text').textContent = `${confidence}%`;
+            document.getElementById('confidence-value').textContent = `${confidence}%`;
             document.getElementById('confidence-bar').style.width = `${confidence}%`;
             
             if (data.response_time_ms) {
                 document.getElementById('response-time').textContent = `${data.response_time_ms.toFixed(1)}ms`;
             }
+            
+            document.getElementById('mic-status').textContent = 'Found! ✅';
+            setTimeout(() => {
+                document.getElementById('mic-status').textContent = 'Click mic to record';
+            }, 3000);
         });
         
         socket.on('next_verses', (data) => {
@@ -226,10 +310,10 @@
                     div.className = 'next-verse p-4 rounded-lg';
                     div.innerHTML = `
                         <div class="flex items-start space-x-3">
-                            <span class="text-blue-400 font-bold text-lg">${verse.ayah}</span>
+                            <span class="text-blue-400 font-bold text-xl">${verse.ayah}</span>
                             <div class="flex-1">
-                                <p class="text-white text-sm font-quran mb-1">${verse.ar.substring(0, 60)}...</p>
-                                <p class="text-blue-200 text-xs">${translation.substring(0, 80)}...</p>
+                                <p class="text-white text-base font-quran mb-2 line-clamp-1">${verse.ar}</p>
+                                <p class="text-gray-300 text-sm line-clamp-2">${translation}</p>
                             </div>
                         </div>
                     `;
@@ -238,17 +322,18 @@
             }
         });
         
-        socket.on('sajdah_alert', (data) => {
-            const alert = document.getElementById('sajdah-alert');
-            document.getElementById('sajdah-details').textContent = `Surah ${data.verse.surah} - Verse ${data.verse.ayah}`;
-            alert.style.display = 'block';
-            setTimeout(() => { alert.style.display = 'none'; }, 5000);
+        socket.on('no_match', () => {
+            document.getElementById('mic-status').textContent = 'No match found';
+            setTimeout(() => {
+                document.getElementById('mic-status').textContent = 'Click mic to record';
+            }, 3000);
         });
         
+        // Keyboard shortcut
         document.addEventListener('keydown', (e) => {
-            if (e.key === 't' || e.key === 'T') {
-                const tests = ['بسم الله الرحمن الرحيم', 'الحمد لله رب العالمين', 'قل هو الله احد'];
-                socket.emit('recognize_verse', { text: tests[Math.floor(Math.random() * 3)], lang: language });
+            if (e.key === ' ' || e.key === 'm' || e.key === 'M') {
+                e.preventDefault();
+                toggleRecording();
             }
         });
     </script>
