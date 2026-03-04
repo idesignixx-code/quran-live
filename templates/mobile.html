@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>🌙 Quran Live - Mobile</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -29,7 +28,6 @@
             position: fixed;
             width: 100%;
             height: 100%;
-            overscroll-behavior: none;
         }
         
         .font-quran { font-family: 'Scheherazade New', serif; }
@@ -92,29 +90,6 @@
             transition: width 0.5s;
         }
         
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #10b981;
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        
-        .lang-selector {
-            display: flex;
-            gap: 0.5rem;
-            padding: 0.5rem;
-            background: rgba(30, 41, 59, 0.6);
-            border-radius: 1rem;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-        
         .lang-btn {
             padding: 0.5rem 1rem;
             border-radius: 0.5rem;
@@ -129,14 +104,6 @@
         .lang-btn.active {
             background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
             border-color: #60a5fa;
-        }
-        
-        .next-verse {
-            background: rgba(30, 41, 59, 0.6);
-            border-left: 3px solid #3b82f6;
-            padding: 0.75rem;
-            border-radius: 0.5rem;
-            margin-bottom: 0.5rem;
         }
     </style>
 </head>
@@ -161,8 +128,8 @@
                         <div class="text-lg font-bold text-green-400" id="confidence">-</div>
                     </div>
                     <div class="flex items-center space-x-1">
-                        <div class="status-dot" id="status-dot"></div>
-                        <span class="text-xs text-green-400" id="status-text">OK</span>
+                        <div class="w-2 h-2 rounded-full bg-gray-500" id="status-dot"></div>
+                        <span class="text-xs text-gray-400" id="status-text">...</span>
                     </div>
                 </div>
             </div>
@@ -175,7 +142,7 @@
         
         <!-- Language Selector -->
         <div class="px-4 py-2">
-            <div class="lang-selector">
+            <div class="flex gap-2 overflow-x-auto">
                 <div class="lang-btn active" data-lang="en" onclick="setLanguage('en')">🇬🇧 EN</div>
                 <div class="lang-btn" data-lang="ar" onclick="setLanguage('ar')">🇸🇦 AR</div>
                 <div class="lang-btn" data-lang="fr" onclick="setLanguage('fr')">🇫🇷 FR</div>
@@ -201,16 +168,14 @@
             </div>
             
             <!-- Next Verses -->
-            <div id="next-verses-container" class="mb-20">
-                <!-- Next verses will appear here -->
-            </div>
+            <div id="next-verses-container" class="mb-20"></div>
         </div>
         
         <!-- Microphone Button (Fixed at bottom) -->
         <div class="fixed bottom-0 left-0 right-0 pb-8 pt-4" style="background: linear-gradient(to top, #0f1419 80%, transparent);">
             <div class="flex flex-col items-center">
                 <div class="mic-button" id="mic-button" onclick="toggleRecording()">
-                    <svg class="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 20 20" id="mic-icon">
+                    <svg class="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clip-rule="evenodd"></path>
                     </svg>
                 </div>
@@ -232,8 +197,68 @@
         
         const socket = io();
         let isRecording = false;
-        let mediaRecorder = null;
-        let audioChunks = [];
+        let recognition = null;
+        
+        // Initialize Speech Recognition
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.lang = 'ar-SA';
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            
+            recognition.onresult = (event) => {
+                const text = event.results[0][0].transcript;
+                console.log('Recognized:', text);
+                
+                document.getElementById('mic-status').textContent = 'Processing...';
+                
+                socket.emit('recognize_verse', {
+                    text: text,
+                    lang: language
+                });
+            };
+            
+            recognition.onerror = (event) => {
+                console.error('Error:', event.error);
+                isRecording = false;
+                document.getElementById('mic-button').classList.remove('recording');
+                document.getElementById('mic-status').textContent = 'Error: ' + event.error;
+                
+                setTimeout(() => {
+                    document.getElementById('mic-status').textContent = 'Tap to record';
+                }, 2000);
+            };
+            
+            recognition.onend = () => {
+                isRecording = false;
+                document.getElementById('mic-button').classList.remove('recording');
+                if (document.getElementById('mic-status').textContent === 'Recording...') {
+                    document.getElementById('mic-status').textContent = 'Processing...';
+                }
+            };
+        }
+        
+        function toggleRecording() {
+            if (!recognition) {
+                alert('Speech recognition not supported. Use Chrome or Edge.');
+                return;
+            }
+            
+            if (!isRecording) {
+                try {
+                    recognition.start();
+                    isRecording = true;
+                    document.getElementById('mic-button').classList.add('recording');
+                    document.getElementById('mic-status').textContent = 'Recording...';
+                } catch (e) {
+                    console.error('Start error:', e);
+                    alert('Please allow microphone access');
+                }
+            } else {
+                recognition.stop();
+            }
+        }
         
         // Connection
         socket.on('connect', () => {
@@ -257,6 +282,19 @@
             const conf = Math.round((data.confidence || 0) * 100);
             document.getElementById('confidence').textContent = `${conf}%`;
             document.getElementById('confidence-bar').style.width = `${conf}%`;
+            
+            document.getElementById('mic-status').textContent = 'Found! ✅';
+            setTimeout(() => {
+                document.getElementById('mic-status').textContent = 'Tap to record';
+            }, 2000);
+        });
+        
+        // No match
+        socket.on('no_match', () => {
+            document.getElementById('mic-status').textContent = 'Not found';
+            setTimeout(() => {
+                document.getElementById('mic-status').textContent = 'Tap to record';
+            }, 2000);
         });
         
         // Next verses
@@ -268,12 +306,12 @@
                 data.verses.forEach((verse) => {
                     const trans = verse[language] || verse.en || '';
                     const div = document.createElement('div');
-                    div.className = 'next-verse';
+                    div.className = 'bg-slate-800 border-l-4 border-blue-500 p-3 rounded mb-2';
                     div.innerHTML = `
                         <div class="flex items-start space-x-2">
                             <span class="text-blue-400 font-bold text-sm">${verse.ayah}</span>
-                            <div class="flex-1 min-w-0">
-                                <p class="text-white text-sm font-quran mb-1 truncate">${verse.ar}</p>
+                            <div class="flex-1">
+                                <p class="text-white text-sm font-quran mb-1">${verse.ar.substring(0, 60)}...</p>
                                 <p class="text-gray-300 text-xs">${trans.substring(0, 60)}...</p>
                             </div>
                         </div>
@@ -296,85 +334,6 @@
                 }
             });
         }
-        
-        // Microphone recording
-        async function toggleRecording() {
-            if (!isRecording) {
-                await startRecording();
-            } else {
-                stopRecording();
-            }
-        }
-        
-        async function startRecording() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    audio: {
-                        echoCancellation: true,
-                        noiseSuppression: true,
-                        sampleRate: 16000
-                    } 
-                });
-                
-                mediaRecorder = new MediaRecorder(stream);
-                audioChunks = [];
-                
-                mediaRecorder.ondataavailable = (event) => {
-                    audioChunks.push(event.data);
-                };
-                
-                mediaRecorder.onstop = async () => {
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                    
-                    // Convert to base64 and send to server
-                    const reader = new FileReader();
-                    reader.onloadend = () => {
-                        const base64Audio = reader.result.split(',')[1];
-                        socket.emit('audio_data', { 
-                            audio: base64Audio, 
-                            lang: language 
-                        });
-                    };
-                    reader.readAsDataURL(audioBlob);
-                    
-                    stream.getTracks().forEach(track => track.stop());
-                };
-                
-                mediaRecorder.start();
-                isRecording = true;
-                
-                document.getElementById('mic-button').classList.add('recording');
-                document.getElementById('mic-status').textContent = 'Recording...';
-                
-            } catch (error) {
-                console.error('Microphone error:', error);
-                alert('Unable to access microphone. Please grant permission.');
-            }
-        }
-        
-        function stopRecording() {
-            if (mediaRecorder && isRecording) {
-                mediaRecorder.stop();
-                isRecording = false;
-                
-                document.getElementById('mic-button').classList.remove('recording');
-                document.getElementById('mic-status').textContent = 'Processing...';
-                
-                setTimeout(() => {
-                    document.getElementById('mic-status').textContent = 'Tap to record';
-                }, 2000);
-            }
-        }
-        
-        // Prevent zoom on double tap
-        let lastTouchEnd = 0;
-        document.addEventListener('touchend', (e) => {
-            const now = Date.now();
-            if (now - lastTouchEnd <= 300) {
-                e.preventDefault();
-            }
-            lastTouchEnd = now;
-        }, false);
         
         // Initialize
         setLanguage(language);
