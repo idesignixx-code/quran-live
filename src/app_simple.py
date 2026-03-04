@@ -14,33 +14,42 @@ if sys.platform == 'win32':
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
+# تحديد المسارات الصحيحة
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(BASE_DIR)
+
+# مسارات Flask
+TEMPLATE_FOLDER = os.path.join(PROJECT_ROOT, 'templates')
+DATA_PATH = os.path.join(PROJECT_ROOT, 'data', 'quran.json')
+
 from flask import Flask, render_template, request, jsonify
 from flask_socketio import SocketIO, emit
 from flask_cors import CORS
 
-app = Flask(__name__)
+# إنشاء التطبيق مع المسارات الصحيحة
+app = Flask(__name__, template_folder=TEMPLATE_FOLDER)
 app.config['SECRET_KEY'] = 'quran-live-secret-2024'
 CORS(app)
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 
-# تحديد مسار البيانات
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_PATH = os.path.join(os.path.dirname(BASE_DIR), 'data', 'quran.json')
-
 print("\n" + "="*70)
-print("🌙 QURAN LIVE TRANSLATION - Simple Mode")
+print("🌙 QURAN LIVE TRANSLATION")
 print("="*70)
-print(f"📁 Data path: {DATA_PATH}")
-print(f"✓ File exists: {os.path.exists(DATA_PATH)}")
+print(f"📁 Base: {BASE_DIR}")
+print(f"📁 Root: {PROJECT_ROOT}")
+print(f"📁 Templates: {TEMPLATE_FOLDER}")
+print(f"📁 Data: {DATA_PATH}")
+print(f"✓ Templates exists: {os.path.exists(TEMPLATE_FOLDER)}")
+print(f"✓ Data exists: {os.path.exists(DATA_PATH)}")
 
 # تحميل البيانات
 quran_data = {}
 try:
     with open(DATA_PATH, 'r', encoding='utf-8') as f:
         quran_data = json.load(f)
-    print(f"✅ Loaded {len(quran_data)} surahs successfully")
+    print(f"✅ Loaded {len(quran_data)} surahs")
 except Exception as e:
-    print(f"❌ Error loading data: {e}")
+    print(f"❌ Error: {e}")
     sys.exit(1)
 
 # بناء الفهرس
@@ -61,17 +70,14 @@ for surah_num, surah in quran_data.items():
 print(f"✅ Indexed {len(verses_index)} verses")
 print("="*70 + "\n")
 
-# حالة التنبؤ التسلسلي
 current_surah = None
 last_ayah = None
 
-# دالة التطبيع
 def normalize(text):
     import re
     if not text:
         return ""
     
-    # معالجة الحروف المقطعة
     muqattaat_map = {
         'الف لام ميم': 'الم',
         'ألف لام ميم': 'الم',
@@ -89,24 +95,19 @@ def normalize(text):
             text = original + text[len(variant):]
             break
     
-    # إزالة التشكيل
     text = re.sub(r'[ًٌٍَُِّْـ]', '', text)
-    # إزالة الأحرف الخاصة
     text = re.sub(r'[^\w\s]', '', text)
-    # توحيد الأحرف
     text = text.replace('أ', 'ا').replace('إ', 'ا').replace('آ', 'ا')
     text = text.replace('ى', 'ي').replace('ة', 'ه')
     text = text.replace('ؤ', 'و').replace('ئ', 'ي')
     
     return text.strip().lower()
 
-# دالة حساب التشابه
 def similarity(text1, text2):
     if not text1 or not text2:
         return 0.0
     return SequenceMatcher(None, text1, text2).ratio()
 
-# دالة البحث المحسّنة
 def search_verse(text):
     global current_surah, last_ayah
     
@@ -114,7 +115,6 @@ def search_verse(text):
     if len(normalized) < 2:
         return None
     
-    # محاولة التنبؤ التسلسلي أولاً
     if current_surah and last_ayah:
         for offset in range(1, 4):
             next_ayah = last_ayah + offset
@@ -129,12 +129,10 @@ def search_verse(text):
     best_match = None
     best_score = 0.0
     
-    # حساب طول النص
     text_len = len(normalized)
     min_len = max(1, text_len - int(text_len * 0.4))
     max_len = text_len + int(text_len * 0.4)
     
-    # بحث سريع بالكلمات
     text_words = set(normalized.split())
     if len(text_words) >= 2:
         for key, verse in verses_index.items():
@@ -154,7 +152,6 @@ def search_verse(text):
                     last_ayah = verse['ayah']
                     return verse
     
-    # بحث كامل
     if best_score < 0.50:
         for key, verse in verses_index.items():
             verse_norm = normalize(verse['ar'])
@@ -169,7 +166,6 @@ def search_verse(text):
                 best_score = score
                 best_match = verse
     
-    # إرجاع النتيجة
     if best_score >= 0.45:
         if best_match:
             current_surah = best_match['surah']
@@ -227,7 +223,7 @@ def handle_set_surah(data):
     if surah:
         current_surah = surah
         last_ayah = 0
-        print(f"📖 Surah set to: {surah}")
+        print(f"📖 Surah: {surah}")
         emit('surah_set', {'surah': surah}, broadcast=True)
 
 @socketio.on('reset_matcher')
@@ -235,7 +231,7 @@ def handle_reset():
     global current_surah, last_ayah
     current_surah = None
     last_ayah = None
-    print("🔄 Matcher reset")
+    print("🔄 Reset")
     emit('matcher_reset', {'message': 'Reset successful'}, broadcast=True)
 
 @socketio.on('recognize_verse')
@@ -248,7 +244,7 @@ def handle_recognize(data):
     
     start_time = time.time()
     
-    print(f"🔍 Searching: {text[:50]}... | Lang: {lang}")
+    print(f"🔍 Search: {text[:50]}... | Lang: {lang}")
     verse = search_verse(text)
     
     response_time = (time.time() - start_time) * 1000
@@ -258,7 +254,6 @@ def handle_recognize(data):
         
         confidence = similarity(normalize(text), normalize(verse['ar']))
         
-        # إعداد بيانات الآية مع كل الترجمات
         verse_data = {
             'surah': verse['surah'],
             'ayah': verse['ayah'],
@@ -271,15 +266,12 @@ def handle_recognize(data):
         
         print(f"📝 Translation ({lang}): {verse_data['translation'][:50]}...")
         
-        # إرسال الآية
         emit('verse_matched', {
             'verse': verse_data,
             'confidence': round(confidence, 2),
-            'source': 'simple_search',
             'response_time_ms': round(response_time, 1)
         }, broadcast=True)
         
-        # الآيات التالية
         next_verses = []
         for i in range(1, 4):
             next_ayah = verse['ayah'] + i
@@ -302,20 +294,18 @@ def handle_recognize(data):
                 'count': len(next_verses)
             }, broadcast=True)
     else:
-        print(f"❌ No match ({response_time:.1f}ms)")
+        print(f"❌ Not found ({response_time:.1f}ms)")
         emit('no_match', {
             'reason': 'not_found',
             'response_time_ms': round(response_time, 1)
         })
 
-# Main
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     
     print("\n" + "="*70)
-    print("🚀 Starting Quran Live Translation Server")
+    print("🚀 Starting Server")
     print(f"📡 Port: {port}")
-    print(f"🌍 Environment: {'Production' if os.environ.get('PORT') else 'Development'}")
     print("="*70 + "\n")
     
     socketio.run(
